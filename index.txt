@@ -3,129 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مینی‌اپ مدیریت پروژه</title>
+  <title>تست مینی‌اپ</title>
   <script src="https://tapi.bale.ai/miniapp.js?3"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; padding: 16px; direction: rtl; }
-    .container { max-width: 480px; margin: 0 auto; }
-    .welcome-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; padding: 24px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(102,126,234,.3); }
-    .welcome-card h1 { font-size: 22px; margin-bottom: 4px; }
-    .welcome-card .subtitle { opacity: .9; font-size: 14px; }
-    .badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 10px; background: rgba(255,255,255,.22); color: #fff; }
-    .info-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 12px; }
-    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { color: #888; }
-    .info-value { font-weight: 600; text-align: left; }
-    .status-box { text-align: center; padding: 40px 20px; }
-    .status-box .icon { font-size: 48px; margin-bottom: 16px; }
-    .status-box .message { font-size: 16px; color: #555; line-height: 1.8; }
-    .status-box.error .message { color: #d32f2f; }
-    .loading-spinner { width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .hidden { display: none !important; }
-    .debug-info { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 12px; color: #666; word-break: break-all; }
+    body { font-family: Tahoma, sans-serif; padding: 16px; direction: rtl; background: #f5f5f5; }
+    .box { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .ok { color: green; font-weight: bold; }
+    .no { color: red; font-weight: bold; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px; word-break: break-all; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="loading" class="status-box">
-      <div class="loading-spinner"></div>
-      <p class="message">در حال احراز هویت...</p>
-    </div>
-    <div id="error" class="status-box error hidden">
-      <div class="icon">❌</div>
-      <p class="message" id="error-message"></p>
-      <div id="debug-info" class="debug-info hidden"></div>
-    </div>
-    <div id="main" class="hidden">
-      <div class="welcome-card">
-        <h1 id="welcome-name">خوش آمدید</h1>
-        <p class="subtitle" id="welcome-sub"></p>
-        <span class="badge" id="access-badge"></span>
-      </div>
-      <div class="info-card">
-        <div class="info-row"><span class="info-label">نام و نام خانوادگی</span><span class="info-value" id="info-fullname">—</span></div>
-        <div class="info-row"><span class="info-label">نام در سیستم</span><span class="info-value" id="info-systemname">—</span></div>
-        <div class="info-row"><span class="info-label">سمت</span><span class="info-value" id="info-position">—</span></div>
-        <div class="info-row"><span class="info-label">واحد</span><span class="info-value" id="info-unit">—</span></div>
-        <div class="info-row"><span class="info-label">سطح دسترسی</span><span class="info-value" id="info-access">—</span></div>
-        <div class="info-row"><span class="info-label">تاریخ ثبت‌نام</span><span class="info-value" id="info-date">—</span></div>
-      </div>
-    </div>
+  <h2>🔍 بررسی وضعیت مینی‌اپ</h2>
+  
+  <div class="box" id="box1">
+    <strong>۱. بارگذاری SDK:</strong>
+    <div id="sdk-status">در حال بررسی...</div>
+  </div>
+  
+  <div class="box" id="box2">
+    <strong>۲. آبجکت WebApp:</strong>
+    <div id="webapp-status">در حال بررسی...</div>
+  </div>
+  
+  <div class="box" id="box3">
+    <strong>۳. مقدار initData:</strong>
+    <div id="initdata-status">در حال بررسی...</div>
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrIqUqRReosGJch2dOYfv2g7LTpiEDUwdlkCFGrpqiGwvC_70NWnFCgRlQYbxNgy48/exec';
-    
-    (async function init() {
-      const loadingEl = document.getElementById('loading');
-      const errorEl = document.getElementById('error');
-      const mainEl = document.getElementById('main');
-      const errorMsgEl = document.getElementById('error-message');
-      const debugInfoEl = document.getElementById('debug-info');
+    (function() {
+      // بررسی ۱: آیا SDK لود شده؟
+      const sdkStatus = document.getElementById('sdk-status');
+      const baleType = typeof window.Bale;
+      const tgType = typeof window.Telegram;
       
-      try {
-        const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
-        
-        // --- دیباگ: وضعیت SDK ---
-        const debugData = {
-          'window.Bale': typeof window.Bale,
-          'window.Bale?.WebApp': typeof window.Bale?.WebApp,
-          'initData': webApp?.initData ? `"${webApp.initData.substring(0, 50)}..."` : 'خالی یا undefined',
-          'initDataUnsafe': typeof webApp?.initDataUnsafe,
-        };
-        console.log('Debug Info:', debugData);
-
-        if (!webApp) {
-          throw new Error('SDK مینی‌اپ بارگذاری نشد.');
-        }
-        
-        webApp.ready?.();
-        webApp.expand?.();
-        
-        const initData = webApp.initData;
-        if (!initData) {
-          // نمایش اطلاعات دیباگ روی صفحه
-          errorMsgEl.textContent = 'initData موجود نیست.';
-          debugInfoEl.classList.remove('hidden');
-          debugInfoEl.innerHTML = '<strong>اطلاعات دیباگ:</strong><br>' + JSON.stringify(debugData, null, 2);
-          throw new Error('initData is empty');
-        }
-        
-        const response = await fetch(APPS_SCRIPT_URL + '?action=auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ initData }),
-        });
-        
-        const result = await response.json();
-        if (!result.ok) throw new Error(result.error || 'احراز هویت ناموفق بود');
-        renderUser(result.user);
-        
-      } catch (err) {
-        loadingEl.classList.add('hidden');
-        errorEl.classList.remove('hidden');
-        if (!errorMsgEl.textContent) errorMsgEl.textContent = err.message;
-        console.error('MiniApp init error:', err);
+      if (baleType === 'undefined' && tgType === 'undefined') {
+        sdkStatus.innerHTML = '<span class="no">❌ SDK بارگذاری نشد</span><br>' +
+          '<code>window.Bale: ' + baleType + '</code><br>' +
+          '<code>window.Telegram: ' + tgType + '</code>';
+      } else {
+        sdkStatus.innerHTML = '<span class="ok">✅ SDK بارگذاری شد</span><br>' +
+          '<code>window.Bale: ' + baleType + '</code><br>' +
+          '<code>window.Telegram: ' + tgType + '</code>';
+      }
+      
+      // بررسی ۲: آبجکت WebApp
+      const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
+      const webappStatus = document.getElementById('webapp-status');
+      
+      if (!webApp) {
+        webappStatus.innerHTML = '<span class="no">❌ WebApp وجود ندارد</span>';
+        document.getElementById('initdata-status').innerHTML = '<span class="no">—</span>';
+        return;
+      }
+      
+      webappStatus.innerHTML = '<span class="ok">✅ WebApp وجود دارد</span><br>' +
+        '<code>platform: ' + (webApp.platform || 'نامشخص') + '</code><br>' +
+        '<code>version: ' + (webApp.version || 'نامشخص') + '</code>';
+      
+      // بررسی ۳: initData
+      webApp.ready?.();
+      webApp.expand?.();
+      
+      const initData = webApp.initData;
+      const initDataStatus = document.getElementById('initdata-status');
+      
+      if (!initData) {
+        initDataStatus.innerHTML = '<span class="no">❌ initData خالی است</span><br>' +
+          '<small>یعنی بله داده‌ای تزریق نکرده</small>';
+      } else {
+        initDataStatus.innerHTML = '<span class="ok">✅ initData وجود دارد</span><br>' +
+          '<code>طول: ' + initData.length + ' کاراکتر</code><br>' +
+          '<code>' + initData.substring(0, 80) + '...</code>';
       }
     })();
-    
-    function renderUser(user) {
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('main').classList.remove('hidden');
-      document.getElementById('welcome-name').textContent = `👋 ${user.fullName}`;
-      document.getElementById('welcome-sub').textContent = user.position || '';
-      const badge = document.getElementById('access-badge');
-      badge.textContent = user.accessLevel || 'نامشخص';
-      document.getElementById('info-fullname').textContent = user.fullName || '—';
-      document.getElementById('info-systemname').textContent = user.systemName || '—';
-      document.getElementById('info-position').textContent = user.position || '—';
-      document.getElementById('info-unit').textContent = user.unit || '—';
-      document.getElementById('info-access').textContent = user.accessLevel || '—';
-      document.getElementById('info-date').textContent = user.registerDate || '—';
-    }
   </script>
 </body>
 </html>
