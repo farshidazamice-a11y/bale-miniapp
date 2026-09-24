@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مینی‌اپ مدیریت پروژه</title>
   
-  <!-- 
-    SDK رسمی مینی‌اپ بله
-    این آدرس صحیح است و باید بدون تغییر بماند.
-  -->
+  <!-- SDK رسمی مینی‌اپ بله -->
   <script src="https://tapi.bale.ai/miniapp.js?3"></script>
   
   <style>
@@ -122,6 +119,12 @@
 
   <script>
     // ============================================================
+    // آدرس Apps Script (Web App URL)
+    // این همان URL است که در پراپرتی EYGOL_WEB_APP_URL داری.
+    // ============================================================
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrIqUqRReosGJch2dOYfv2g7LTpiEDUwdlkCFGrpqiGwvC_70NWnFCgRlQYbxNgy48/exec';
+    
+    // ============================================================
     // مینی‌اپ: احراز هویت خودکار + نمایش اطلاعات کاربر
     // ============================================================
     
@@ -133,7 +136,6 @@
       
       try {
         // ۱. دریافت SDK مینی‌اپ بله
-        // بله معمولاً window.Bale.WebApp را تزریق می‌کند
         const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
         
         if (!webApp) {
@@ -153,11 +155,8 @@
           );
         }
         
-        // ۳. ارسال به سرور برای احراز هویت
-        // نکته: از Content-Type: text/plain استفاده می‌کنیم تا از
-        // preflight request مرورگر جلوگیری شود (Apps Script CORS).
-        const url = window.location.origin + window.location.pathname;
-        const response = await fetch(url + '?action=auth', {
+        // ۳. ارسال به Apps Script برای احراز هویت
+        const response = await fetch(APPS_SCRIPT_URL + '?action=auth', {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ initData }),
