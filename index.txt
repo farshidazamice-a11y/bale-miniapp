@@ -1,83 +1,26 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تست مینی‌اپ</title>
-  <script src="https://tapi.bale.ai/miniapp.js?3"></script>
-  <style>
-    body { font-family: Tahoma, sans-serif; padding: 16px; direction: rtl; background: #f5f5f5; }
-    .box { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-    .ok { color: green; font-weight: bold; }
-    .no { color: red; font-weight: bold; }
-    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px; word-break: break-all; }
-  </style>
-</head>
-<body>
-  <h2>🔍 بررسی وضعیت مینی‌اپ</h2>
-  
-  <div class="box" id="box1">
-    <strong>۱. بارگذاری SDK:</strong>
-    <div id="sdk-status">در حال بررسی...</div>
-  </div>
-  
-  <div class="box" id="box2">
-    <strong>۲. آبجکت WebApp:</strong>
-    <div id="webapp-status">در حال بررسی...</div>
-  </div>
-  
-  <div class="box" id="box3">
-    <strong>۳. مقدار initData:</strong>
-    <div id="initdata-status">در حال بررسی...</div>
-  </div>
+<!-- این کد را در ابتدای تگ body قرار دهید -->
+<div id="debug-info" style="position:fixed; bottom:0; left:0; right:0; background:#fffbe6; padding:10px; font-size:12px; border-top:1px solid #ccc; z-index:9999; direction:ltr; text-align:left;">
+  <strong>Debug Info:</strong><br>
+  window.Bale: <span id="dbg-bale"></span><br>
+  window.Bale.WebApp: <span id="dbg-webapp"></span><br>
+  initData: <span id="dbg-initdata"></span><br>
+  initDataUnsafe: <span id="dbg-unsafe"></span>
+</div>
 
-  <script>
-    (function() {
-      // بررسی ۱: آیا SDK لود شده؟
-      const sdkStatus = document.getElementById('sdk-status');
-      const baleType = typeof window.Bale;
-      const tgType = typeof window.Telegram;
-      
-      if (baleType === 'undefined' && tgType === 'undefined') {
-        sdkStatus.innerHTML = '<span class="no">❌ SDK بارگذاری نشد</span><br>' +
-          '<code>window.Bale: ' + baleType + '</code><br>' +
-          '<code>window.Telegram: ' + tgType + '</code>';
-      } else {
-        sdkStatus.innerHTML = '<span class="ok">✅ SDK بارگذاری شد</span><br>' +
-          '<code>window.Bale: ' + baleType + '</code><br>' +
-          '<code>window.Telegram: ' + tgType + '</code>';
-      }
-      
-      // بررسی ۲: آبجکت WebApp
-      const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
-      const webappStatus = document.getElementById('webapp-status');
-      
-      if (!webApp) {
-        webappStatus.innerHTML = '<span class="no">❌ WebApp وجود ندارد</span>';
-        document.getElementById('initdata-status').innerHTML = '<span class="no">—</span>';
-        return;
-      }
-      
-      webappStatus.innerHTML = '<span class="ok">✅ WebApp وجود دارد</span><br>' +
-        '<code>platform: ' + (webApp.platform || 'نامشخص') + '</code><br>' +
-        '<code>version: ' + (webApp.version || 'نامشخص') + '</code>';
-      
-      // بررسی ۳: initData
-      webApp.ready?.();
-      webApp.expand?.();
-      
-      const initData = webApp.initData;
-      const initDataStatus = document.getElementById('initdata-status');
-      
-      if (!initData) {
-        initDataStatus.innerHTML = '<span class="no">❌ initData خالی است</span><br>' +
-          '<small>یعنی بله داده‌ای تزریق نکرده</small>';
-      } else {
-        initDataStatus.innerHTML = '<span class="ok">✅ initData وجود دارد</span><br>' +
-          '<code>طول: ' + initData.length + ' کاراکتر</code><br>' +
-          '<code>' + initData.substring(0, 80) + '...</code>';
-      }
-    })();
-  </script>
-</body>
-</html>
+<script>
+  // این کد را در انتهای تگ body، بعد از اسکریپت اصلی خود قرار دهید
+  document.addEventListener('DOMContentLoaded', function() {
+    const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
+    
+    document.getElementById('dbg-bale').textContent = typeof window.Bale;
+    document.getElementById('dbg-webapp').textContent = webApp ? '✅ وجود دارد' : '❌ وجود ندارد';
+    
+    if (webApp) {
+      document.getElementById('dbg-initdata').textContent = webApp.initData ? `✅ طول: ${webApp.initData.length}` : '❌ خالی';
+      document.getElementById('dbg-unsafe').textContent = webApp.initDataUnsafe ? '✅ دارد' : '❌ ندارد';
+    } else {
+      document.getElementById('dbg-initdata').textContent = 'N/A';
+      document.getElementById('dbg-unsafe').textContent = 'N/A';
+    }
+  });
+</script>
