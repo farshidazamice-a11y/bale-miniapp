@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مینی‌اپ مدیریت پروژه</title>
+  
+  <!-- 
+    SDK رسمی مینی‌اپ بله
+    این آدرس صحیح است و باید بدون تغییر بماند.
+  -->
+  <script src="https://tapi.bale.ai/miniapp.js?3"></script>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      background: #f0f2f5; color: #1a1a2e;
+      min-height: 100vh; padding: 16px;
+      direction: rtl;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    
+    .welcome-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; border-radius: 20px;
+      padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(102,126,234,.3);
+    }
+    .welcome-card h1 { font-size: 22px; margin-bottom: 4px; }
+    .welcome-card .subtitle { opacity: .9; font-size: 14px; }
+    
+    .badge {
+      display: inline-block; padding: 4px 14px;
+      border-radius: 20px; font-size: 13px;
+      font-weight: 600; margin-top: 10px;
+      background: rgba(255,255,255,.22); color: #fff;
+    }
+    
+    .info-card {
+      background: white; border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      margin-bottom: 12px;
+    }
+    .info-row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #888; }
+    .info-value { font-weight: 600; text-align: left; }
+    
+    .status-box { text-align: center; padding: 40px 20px; }
+    .status-box .icon { font-size: 48px; margin-bottom: 16px; }
+    .status-box .message { font-size: 16px; color: #555; line-height: 1.8; }
+    .status-box.error .message { color: #d32f2f; }
+    
+    .loading-spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e0e0e0; border-top-color: #667eea;
+      border-radius: 50%; animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- صفحه لودینگ -->
+    <div id="loading" class="status-box">
+      <div class="loading-spinner"></div>
+      <p class="message">در حال احراز هویت...</p>
+    </div>
+    
+    <!-- صفحه خطا -->
+    <div id="error" class="status-box error hidden">
+      <div class="icon">❌</div>
+      <p class="message" id="error-message"></p>
+    </div>
+    
+    <!-- صفحه اصلی -->
+    <div id="main" class="hidden">
+      <div class="welcome-card">
+        <h1 id="welcome-name">خوش آمدید</h1>
+        <p class="subtitle" id="welcome-sub"></p>
+        <span class="badge" id="access-badge"></span>
+      </div>
+      
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">نام و نام خانوادگی</span>
+          <span class="info-value" id="info-fullname">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">نام در سیستم</span>
+          <span class="info-value" id="info-systemname">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">سمت</span>
+          <span class="info-value" id="info-position">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">واحد</span>
+          <span class="info-value" id="info-unit">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">سطح دسترسی</span>
+          <span class="info-value" id="info-access">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">تاریخ ثبت‌نام</span>
+          <span class="info-value" id="info-date">—</span>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <script>
+    // ============================================================
+    // مینی‌اپ: احراز هویت خودکار + نمایش اطلاعات کاربر
+    // ============================================================
+    
+    (async function init() {
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      const mainEl = document.getElementById('main');
+      const errorMsgEl = document.getElementById('error-message');
+      
+      try {
+        // ۱. دریافت SDK مینی‌اپ بله
+        // بله معمولاً window.Bale.WebApp را تزریق می‌کند
+        const webApp = window.Bale?.WebApp || window.Telegram?.WebApp;
+        
+        if (!webApp) {
+          throw new Error(
+            'SDK مینی‌اپ بارگذاری نشد. لطفاً مینی‌اپ را از داخل بله باز کنید.'
+          );
+        }
+        
+        webApp.ready?.();
+        webApp.expand?.();
+        
+        // ۲. دریافت initData
+        const initData = webApp.initData;
+        if (!initData) {
+          throw new Error(
+            'initData موجود نیست. لطفاً از دکمه «ورود به مینی‌اپ» در ربات وارد شوید.'
+          );
+        }
+        
+        // ۳. ارسال به سرور برای احراز هویت
+        // نکته: از Content-Type: text/plain استفاده می‌کنیم تا از
+        // preflight request مرورگر جلوگیری شود (Apps Script CORS).
+        const url = window.location.origin + window.location.pathname;
+        const response = await fetch(url + '?action=auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ initData }),
+        });
+        
+        const result = await response.json();
+        
+        if (!result.ok) {
+          throw new Error(result.error || 'احراز هویت ناموفق بود');
+        }
+        
+        renderUser(result.user);
+        
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+        errorMsgEl.textContent = err.message;
+        console.error('MiniApp init error:', err);
+      }
+    })();
+    
+    /**
+     * نمایش اطلاعات کاربر در صفحه
+     */
+    function renderUser(user) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('main').classList.remove('hidden');
+      
+      document.getElementById('welcome-name').textContent =
+        `👋 ${user.fullName}`;
+      document.getElementById('welcome-sub').textContent =
+        user.position || '';
+      
+      const badge = document.getElementById('access-badge');
+      badge.textContent = user.accessLevel || 'نامشخص';
+      
+      document.getElementById('info-fullname').textContent = user.fullName || '—';
+      document.getElementById('info-systemname').textContent = user.systemName || '—';
+      document.getElementById('info-position').textContent = user.position || '—';
+      document.getElementById('info-unit').textContent = user.unit || '—';
+      document.getElementById('info-access').textContent = user.accessLevel || '—';
+      document.getElementById('info-date').textContent = user.registerDate || '—';
+    }
+  </script>
+</body>
+</html>
